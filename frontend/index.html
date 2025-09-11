@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Items App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>📦 רשימת מוצרים</h1>
+
+  <div id="categories"></div>
+  <div id="items"></div>
+
+  <script>
+    const API = "https://one23-diok.onrender.com"; // הכתובת של ה-API שלך
+
+    async function loadCategories() {
+      const res = await fetch(`${API}/categories`);
+      const cats = await res.json();
+      document.getElementById("categories").innerHTML = cats
+        .map(c => `<button onclick="loadItems('${c.category}')">${c.category} (${c.count})</button>`)
+        .join(" ");
+    }
+
+    async function loadItems(category) {
+      const res = await fetch(`${API}/items?category=${encodeURIComponent(category)}`);
+      const data = await res.json();
+      document.getElementById("items").innerHTML = data.items
+        .map(i => `
+          <div class="card">
+            <img src="${i.Image}" alt="${i.Name}">
+            <h3>${i.Name}</h3>
+            <p>קטגוריה: ${i.Category}</p>
+            <p>מותג: ${i.Marca}</p>
+            <p>איפה: ${i.where}</p>
+          </div>
+        `)
+        .join("");
+    }
+
+    loadCategories();
+  </script>
+</body>
+</html>
