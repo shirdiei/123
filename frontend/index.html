@@ -1,44 +1,121 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>Items App</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>הקטלוג</title>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>📦 רשימת מוצרים</h1>
+<header class="bar">
+  <h1>הקטלוג</h1>
+  <input id="search" placeholder="חיפוש בשם / מותג / איפה" />
+</header>
 
-  <div id="categories"></div>
-  <div id="items"></div>
+<main class="wrap">
+  <aside class="side">
+    <h2>קטגוריות</h2>
+    <div id="cats" class="cats"></div>
+  </aside>
 
-  <script>
-    const API = "https://one23-diok.onrender.com"; // הכתובת של ה-API שלך
+  <section class="content">
+    <div class="controls">
+      <span id="count"></span>
+      <div class="pager">
+        <button id="prev">‹ הקודם</button>
+        <button id="next">הבא ›</button>
+      </div>
+    </div>
 
-    async function loadCategories() {
-      const res = await fetch(`${API}/categories`);
-      const cats = await res.json();
-      document.getElementById("categories").innerHTML = cats
-        .map(c => `<button onclick="loadItems('${c.category}')">${c.category} (${c.count})</button>`)
-        .join(" ");
-    }
+    <div id="grid" class="grid"></div>
+  </section>
+</main>
 
-    async function loadItems(category) {
-      const res = await fetch(`${API}/items?category=${encodeURIComponent(category)}`);
-      const data = await res.json();
-      document.getElementById("items").innerHTML = data.items
-        .map(i => `
-          <div class="card">
-            <img src="${i.Image}" alt="${i.Name}">
-            <h3>${i.Name}</h3>
-            <p>קטגוריה: ${i.Category}</p>
-            <p>מותג: ${i.Marca}</p>
-            <p>איפה: ${i.where}</p>
+<footer class="foot">
+  מתעדכן מ־API חי
+</footer>
+
+<script>
+  // ה־API רץ על אותו דומיין (כי מימשנו mount ל-/app)
+  const API = location.origin.replace(/\/$/,'');
+  let state = { q:"", category:null, offset:0, limit:24 };
+
+  const el = sel => document.querySelector(sel);
+  const fmt = s => s || "—";
+
+  async function j(u){
+    const r = await fetch(u);
+    if(!r.ok) throw new Error(r.status + " " + r.statusText);
+    return r.json();
+  }
+
+  async function loadCats(){
+    const cats = await j(`${API}/categories`);
+    const all = [{category:"כל המוצרים", count: cats.reduce((a,c)=>a+c.count,0), _all:true}];
+    const list = all.concat(cats);
+    el("#cats").innerHTML = list.map(c => `
+      <button class="chip ${state.category=== (c._all? null : c.category) ? "active":""}"
+              data-val="${c._all ? "" : c.category}">
+        ${c.category} <span class="cnt">${c.count}</span>
+      </button>
+    `).join("");
+    el("#cats").querySelectorAll(".chip").forEach(b=>{
+      b.onclick = ()=>{
+        state.category = b.dataset.val || null;
+        state.offset = 0;
+        render();
+      };
+    });
+  }
+
+  async function loadItems(){
+    const p = new URLSearchParams();
+    if(state.q) p.set('q', state.q);
+    if(state.category) p.set('category', state.category);
+    p.set('limit', state.limit);
+    p.set('offset', state.offset);
+    return j(`${API}/items?${p}`);
+  }
+
+  function imgTag(src, alt){
+    if(!src) return `<div class="thumb ph">אין תמונה</div>`;
+    return `<img class="thumb" src="${src}" alt="${alt||""}" loading="lazy"
+              onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb ph',innerText:'אין תמונה'}))">`;
+  }
+
+  async function render(){
+    el("#grid").innerHTML = '<div class="loading">טוען…</div>';
+    try{
+      const data = await loadItems();
+      el("#count").textContent = `נמצאו ${data.total} פריטים`;
+      const html = data.items.map(it => `
+        <article class="card">
+          <div class="thumb-wrap">${imgTag(it.Image, it.Name)}</div>
+          <div class="body">
+            <h3 class="name" title="${it.Name||''}">${fmt(it.Name)}</h3>
+            <div class="meta">
+              <span>קטגוריה: ${fmt(it.Category)}</span>
+              <span>מותג: ${fmt(it.Marca)}</span>
+              <span>איפה: ${fmt(it.where)}</span>
+            </div>
           </div>
-        `)
-        .join("");
+        </article>
+      `).join("");
+      el("#grid").innerHTML = html || '<div class="empty">אין תוצאות</div>';
+      el("#prev").disabled = state.offset<=0;
+      el("#next").disabled = state.offset+state.limit>=data.total;
+      window.scrollTo({top:0, behavior:'smooth'});
+    }catch(e){
+      el("#grid").innerHTML = `<div class="error">שגיאה בטעינה (${e.message})</div>`;
     }
+  }
 
-    loadCategories();
-  </script>
+  el("#search").oninput = e => { state.q = e.target.value.trim(); state.offset=0; render(); };
+  el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
+  el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
+
+  (async function init(){ await loadCats(); await render(); })();
+</script>
 </body>
 </html>
