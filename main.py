@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import pandas as pd
 import os
 
-CSV_PATH = os.getenv("CSV_PATH", "data/items.csv")
+CSV_PATH = os.getenv("CSV_PATH", "items.csv")
 
 # --- טוענים את ה-CSV פעם אחת ---
 df = pd.read_csv(CSV_PATH).fillna("")
