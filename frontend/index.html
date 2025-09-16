@@ -8,10 +8,36 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<header class="bar">
-  <h1>Catalog</h1>
-  <input id="search" placeholder="Search by name / brand / location" />
+
+<!-- Top navigation -->
+<header class="topnav">
+  <div class="brand">story.</div>
+  <nav class="links">
+    <a href="#">Women</a>
+    <a href="#">Men</a>
+    <a href="#">Kids</a>
+    <a href="#">Brands</a>
+    <a href="#">New In</a>
+  </nav>
+  <div class="actions">
+    <button class="icon" aria-label="Account">🧑</button>
+    <button class="icon" aria-label="Search">🔍</button>
+    <button class="icon" aria-label="Cart">🛍️</button>
+  </div>
 </header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <h1>FALL INTO WINTER</h1>
+    <h2>CAN YOU FEEL IT?</h2>
+    <div class="hero-cta">
+      <button class="pill" data-cat="Kids">KIDS</button>
+      <button class="pill" data-cat="Men">MEN</button>
+      <button class="pill" data-cat="Women">WOMEN</button>
+    </div>
+  </div>
+</section>
 
 <main class="wrap">
   <aside class="side">
@@ -21,6 +47,7 @@
 
   <section class="content">
     <div class="controls">
+      <input id="search" placeholder="Search by name / brand / location" />
       <span id="count"></span>
       <div class="pager">
         <button id="prev">‹ Prev</button>
@@ -32,16 +59,13 @@
   </section>
 </main>
 
-<footer class="foot">
-  Live data from API
-</footer>
+<footer class="foot">Live data from API</footer>
 
 <script>
   const API = ""; // same-origin
-
   let state = { q:"", category:null, offset:0, limit:24 };
 
-  const el  = sel => document.querySelector(sel);
+  const el  = s => document.querySelector(s);
   const fmt = s => s || "—";
 
   async function j(u){
@@ -111,9 +135,28 @@
     }
   }
 
-  el("#search").oninput = e => { state.q = e.target.value.trim(); state.offset=0; render(); };
-  el("#prev").onclick   = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
-  el("#next").onclick   = ()=>{ state.offset += state.limit; render(); };
+  // search + pager
+  document.addEventListener("input", e=>{
+    if(e.target.id==="search"){
+      state.q = e.target.value.trim();
+      state.offset = 0;
+      render();
+    }
+  });
+  el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
+  el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
+
+  // hero buttons -> filter by category and scroll to grid
+  document.addEventListener("click", (e)=>{
+    const b = e.target.closest(".hero .pill");
+    if(!b) return;
+    state.category = b.dataset.cat || null;  // make sure matches CSV categories
+    state.offset = 0;
+    render().then(()=>{
+      const y = document.querySelector(".content").offsetTop - 12;
+      window.scrollTo({top:y, behavior:"smooth"});
+    });
+  });
 
   (async function init(){ await loadCats(); await render(); })();
 </script>
