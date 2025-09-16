@@ -26,7 +26,7 @@
   </div>
 </header>
 
-<!-- Hero -->
+<!-- Hero (uses frontend/Picture1.png) -->
 <section class="hero">
   <div class="hero-inner">
     <h1>FALL INTO WINTER</h1>
@@ -135,7 +135,6 @@
     }
   }
 
-  // search + pager
   document.addEventListener("input", e=>{
     if(e.target.id==="search"){
       state.q = e.target.value.trim();
@@ -150,7 +149,7 @@
   document.addEventListener("click", (e)=>{
     const b = e.target.closest(".hero .pill");
     if(!b) return;
-    state.category = b.dataset.cat || null;  // make sure matches CSV categories
+    state.category = b.dataset.cat || null;  // must match CSV Category values
     state.offset = 0;
     render().then(()=>{
       const y = document.querySelector(".content").offsetTop - 12;
