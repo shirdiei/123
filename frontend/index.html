@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Catalog</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -54,7 +53,6 @@
         <button id="next">Next ›</button>
       </div>
     </div>
-
     <div id="grid" class="grid"></div>
   </section>
 </main>
@@ -81,6 +79,7 @@
     el("#cats").innerHTML = list.map(c => `
       <button class="chip ${state.category=== (c._all? null : c.category) ? "active":""}"
               data-val="${c._all ? "" : c.category}">
+        <span class="dot" style="--h:${Math.abs(c.category?.length*23)%360}"></span>
         ${c.category} <span class="cnt">${c.count}</span>
       </button>
     `).join("");
@@ -89,6 +88,7 @@
         state.category = b.dataset.val || null;
         state.offset = 0;
         render();
+        document.querySelector(".content").scrollIntoView({behavior:"smooth"});
       };
     });
   }
@@ -129,7 +129,6 @@
       el("#grid").innerHTML = html || '<div class="empty">No results</div>';
       el("#prev").disabled = state.offset<=0;
       el("#next").disabled = state.offset+state.limit>=data.total;
-      window.scrollTo({top:0, behavior:'smooth'});
     }catch(e){
       el("#grid").innerHTML = `<div class="error">Load error (${e.message})</div>`;
     }
@@ -145,16 +144,13 @@
   el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
   el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
 
-  // hero buttons -> filter by category and scroll to grid
   document.addEventListener("click", (e)=>{
     const b = e.target.closest(".hero .pill");
     if(!b) return;
-    state.category = b.dataset.cat || null;  // must match CSV Category values
+    state.category = b.dataset.cat || null;
     state.offset = 0;
-    render().then(()=>{
-      const y = document.querySelector(".content").offsetTop - 12;
-      window.scrollTo({top:y, behavior:"smooth"});
-    });
+    render();
+    document.querySelector(".content").scrollIntoView({behavior:"smooth"});
   });
 
   (async function init(){ await loadCats(); await render(); })();
