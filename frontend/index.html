@@ -37,15 +37,18 @@
 </footer>
 
 <script>
-  // ה־API רץ על אותו דומיין (כי מימשנו mount ל-/app)
-  const API = location.origin.replace(/\/$/,'');
+  // <<< כאן העדכון החשוב: מצביע על ה-API החי בעכבר >>>
+  const API = "https://one23-2-q2fp.onrender.com";
+  // אם בעתיד תרצי להשתמש באותו דומיין:
+  // const API = (location.hostname.endsWith("onrender.com") ? "https://one23-2-q2fp.onrender.com" : location.origin.replace(/\/$/,''));
+
   let state = { q:"", category:null, offset:0, limit:24 };
 
-  const el = sel => document.querySelector(sel);
+  const el  = sel => document.querySelector(sel);
   const fmt = s => s || "—";
 
   async function j(u){
-    const r = await fetch(u);
+    const r = await fetch(u, { mode: "cors" });
     if(!r.ok) throw new Error(r.status + " " + r.statusText);
     return r.json();
   }
@@ -71,9 +74,9 @@
 
   async function loadItems(){
     const p = new URLSearchParams();
-    if(state.q) p.set('q', state.q);
-    if(state.category) p.set('category', state.category);
-    p.set('limit', state.limit);
+    if(state.q)         p.set('q', state.q);
+    if(state.category)  p.set('category', state.category);
+    p.set('limit',  state.limit);
     p.set('offset', state.offset);
     return j(`${API}/items?${p}`);
   }
@@ -112,8 +115,8 @@
   }
 
   el("#search").oninput = e => { state.q = e.target.value.trim(); state.offset=0; render(); };
-  el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
-  el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
+  el("#prev").onclick     = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
+  el("#next").onclick     = ()=>{ state.offset += state.limit; render(); };
 
   (async function init(){ await loadCats(); await render(); })();
 </script>
