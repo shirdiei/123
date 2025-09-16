@@ -37,10 +37,8 @@
 </footer>
 
 <script>
-  // <<< כאן העדכון החשוב: מצביע על ה-API החי בעכבר >>>
-  const API = "https://one23-2-q2fp.onrender.com";
-  // אם בעתיד תרצי להשתמש באותו דומיין:
-  // const API = (location.hostname.endsWith("onrender.com") ? "https://one23-2-q2fp.onrender.com" : location.origin.replace(/\/$/,''));
+  // אותו דומיין
+  const API = "";
 
   let state = { q:"", category:null, offset:0, limit:24 };
 
@@ -48,13 +46,13 @@
   const fmt = s => s || "—";
 
   async function j(u){
-    const r = await fetch(u, { mode: "cors" });
+    const r = await fetch(u);
     if(!r.ok) throw new Error(r.status + " " + r.statusText);
     return r.json();
   }
 
   async function loadCats(){
-    const cats = await j(`${API}/categories`);
+    const cats = await j(`${API}/api/categories`);
     const all = [{category:"כל המוצרים", count: cats.reduce((a,c)=>a+c.count,0), _all:true}];
     const list = all.concat(cats);
     el("#cats").innerHTML = list.map(c => `
@@ -78,7 +76,7 @@
     if(state.category)  p.set('category', state.category);
     p.set('limit',  state.limit);
     p.set('offset', state.offset);
-    return j(`${API}/items?${p}`);
+    return j(`${API}/api/items?${p}`);
   }
 
   function imgTag(src, alt){
@@ -115,8 +113,8 @@
   }
 
   el("#search").oninput = e => { state.q = e.target.value.trim(); state.offset=0; render(); };
-  el("#prev").onclick     = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
-  el("#next").onclick     = ()=>{ state.offset += state.limit; render(); };
+  el("#prev").onclick   = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
+  el("#next").onclick   = ()=>{ state.offset += state.limit; render(); };
 
   (async function init(){ await loadCats(); await render(); })();
 </script>
