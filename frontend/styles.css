@@ -3,19 +3,31 @@
   --text:#1b2430; --muted:#5a6b7b; --chip:#f0f4f8;
 }
 
+/* Fonts: Vintera (files in project root) */
+@font-face{
+  font-family:"Vintera";
+  src:url("./Vintera-Regular.ttf") format("truetype"),
+      url("./Vintera-Regular.otf") format("opentype");
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:"Vintera";
+  src:url("./Vintera-Italic.ttf") format("truetype"),
+      url("./Vintera-Italic.otf") format("opentype");
+  font-weight:400; font-style:italic; font-display:swap;
+}
+
 /* Reset */
 *{box-sizing:border-box}
 html,body{height:100%}
 html{direction:ltr}
 body{
-
-  background: url("./Picture1.png?v=2") center/cover fixed no-repeat, var(--bg);
   margin:0;
   color:var(--text);
   font-family:"Vintera", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
   /* site-wide background image */
-  background: url("./Picture1.png") center/cover fixed no-repeat, var(--bg);
+  background: url("./Picture1.png?v=4") center/cover fixed no-repeat, var(--bg);
 }
 
 a{color:var(--text); text-decoration:none}
@@ -34,7 +46,7 @@ a:hover{text-decoration:underline}
 .icon{all:unset; cursor:pointer; padding:6px 10px; border-radius:10px}
 .icon:hover{background:var(--chip)}
 
-/* Hero – no background overlay */
+/* Hero – clean card with image */
 .hero{margin:16px}
 .hero-inner{
   display:flex; flex-direction:column; align-items:center; gap:12px;
@@ -45,8 +57,10 @@ a:hover{text-decoration:underline}
 .hero-sub{margin:10px 0 12px; font-size:18px; font-weight:600}
 
 /* Categories bar (under hero) */
-.cats-bar{background:var(--panel); border:1px solid var(--line);
-  border-radius:16px; padding:14px; margin:0 16px 12px}
+.cats-bar{
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:16px; padding:14px; margin:0 16px 12px
+}
 .cats-bar h2{margin:0 0 12px; font-size:16px; color:var(--muted)}
 .cats{display:flex; flex-wrap:wrap; gap:10px}
 .chip{
@@ -66,7 +80,7 @@ a:hover{text-decoration:underline}
 .side{display:none}
 @media (max-width:1000px){ .list{grid-template-columns:1fr} }
 
-body.list-view .cats-bar{display:none}          /* hide top bar */
+body.list-view .cats-bar{display:none}           /* hide top bar after click */
 body.list-view .list{grid-template-columns:280px 1fr}
 body.list-view .side{
   display:block; position:sticky; top:16px; height:max-content;
@@ -89,8 +103,10 @@ body.list-view .side{
 .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:16px}
 
 /* Cards */
-.card{background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden;
-  transition:transform .10s ease, box-shadow .12s ease; cursor:pointer}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden;
+  transition:transform .10s ease, box-shadow .12s ease; cursor:pointer
+}
 .card:hover{transform:translateY(-3px); box-shadow:0 10px 22px rgba(0,0,0,.10)}
 .thumb-wrap{background:#f6f8fb; border-bottom:1px solid var(--line)}
 .thumb{display:block; width:100%; height:220px; object-fit:cover}
@@ -105,26 +121,14 @@ body.list-view .side{
 /* Footer */
 .foot{padding:12px 16px; color:var(--muted); border-top:1px solid var(--line);
   background:transparent; text-align:center}
-/* === Vintera font faces === */
-/* הניחי את קבצי הפונט בתקייה: ./fonts/  ושני שמות הקבצים כפי שמופיע כאן */
-@font-face{
-  font-family:"Vintera";
-  src:url("./fonts/Vintera-Regular.woff2") format("woff2");
-  font-weight:400; font-style:normal; font-display:swap;
-}
-@font-face{
-  font-family:"Vintera";
-  src:url("./fonts/Vintera-Bold.woff2") format("woff2");
-  font-weight:700; font-style:normal; font-display:swap;
-}
 
-/* === Modal look & feel === */
+/* Modal – rounded, no border, Vintera */
 .modal{
   padding:0; border:none; outline:none;
-  border-radius:32px;                         /* corners more round */
+  border-radius:32px;
   max-width:900px; width:96%;
-  background:#fff;                            /* clear white card */
-  box-shadow:0 20px 50px rgba(0,0,0,.35);     /* soft shadow, no black border */
+  background:#fff;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
   font-family:"Vintera", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 .modal::backdrop{ background:rgba(0,0,0,.45) }
@@ -135,32 +139,11 @@ body.list-view .side{
   width:36px; height:36px; cursor:pointer;
   box-shadow:0 4px 16px rgba(0,0,0,.2)
 }
-.modal-body{
-  display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:18px;
-}
-.modal-body img{
-  width:100%; height:100%; object-fit:cover; border-radius:18px;
-}
+.modal-body{ display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:18px }
+.modal-body img{ width:100%; height:100%; object-fit:cover; border-radius:18px }
 .modal-info h3{ margin:4px 0 8px; font-size:22px; font-weight:700 }
 .modal-info p{ margin:4px 0; font-size:15px }
 @media (max-width:700px){ .modal-body{ grid-template-columns:1fr } }
-
-
-
-/* Modal */
-
-.modal{padding:0; border:none; border-radius:16px; max-width:900px; width:96%}
-.modal::backdrop{background:rgba(0,0,0,.45)}
-.modal-card{padding:0; margin:0}
-.modal-close{
-  position:absolute; top:10px; right:10px; border:0; background:#fff; border-radius:999px;
-  width:32px; height:32px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.15)
-}
-.modal-body{display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px}
-.modal-body img{width:100%; height:100%; object-fit:cover; border-radius:12px}
-.modal-info h3{margin:4px 0 8px; font-size:20px}
-.modal-info p{margin:4px 0; font-size:14px; color:var(--text)}
-@media (max-width:700px){ .modal-body{grid-template-columns:1fr} }
 
 /* Motion */
 @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
