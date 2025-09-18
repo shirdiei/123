@@ -10,18 +10,21 @@
 
 <header class="topnav">
   <div class="brand">CJG CUMONIDAD JUDIA</div>
-
+  <div class="actions">
+    <button class="icon" aria-label="Account">🧑</button>
+    <button class="icon" aria-label="Search">🔍</button>
+    <button class="icon" aria-label="Cart">🛍️</button>
   </div>
 </header>
 
-<!-- Hero – רק טקסט, כי התמונה מוגדרת כרקע של body -->
+<!-- Hero – טקסט בלבד. התמונה היא רקע של body -->
 <section class="hero">
   <div class="hero-inner">
     <h2 class="hero-sub">Choose a category</h2>
   </div>
 </section>
 
-<!-- Categories – מוצגות פעם אחת בלבד -->
+<!-- Categories – מוצג פעם אחת, יעבור לשמאל אחרי לחיצה -->
 <section class="cats-bar">
   <h2>Categories</h2>
   <div id="cats" class="cats"></div>
@@ -67,7 +70,9 @@
 
 <script>
   const API = "";
-  let state = { q:"", category:null, offset:0, limit:24, itemsCache:[] };
+  const CAT_LIMIT = 12; // כמה קטגוריות להציג כברירת מחדל
+
+  let state = { q:"", category:null, offset:0, limit:24, itemsCache:[], allCats:[], showAllCats:false };
 
   const el  = s => document.querySelector(s);
   const fmt = s => s || "—";
@@ -78,41 +83,61 @@
     return r.json();
   }
 
-  // Render categories once, move them left after click
-  function renderCats(cats){
-    const html = cats.map(c => `
+  // ---- Categories (עם Show all / Show less) ----
+  async function loadCats(){
+    const cats = await j(`${API}/api/categories`);
+    state.allCats = cats || [];
+    state.showAllCats = false;
+    renderCats();
+  }
+
+  function renderCats(){
+    const list = state.showAllCats ? state.allCats : (state.allCats || []).slice(0, CAT_LIMIT);
+
+    const html = list.map(c => `
       <button class="chip" data-val="${c.category}">
         <span class="dot" style="--h:${Math.abs((c.category||'').length*23)%360}"></span>
         ${c.category} <span class="cnt">${c.count ?? ""}</span>
       </button>
     `).join("");
-    el("#cats").innerHTML = html;
 
-    el("#cats").querySelectorAll(".chip").forEach(b=>{
-      b.onclick = ()=>{
-        state.category = b.dataset.val || null;
-        state.offset = 0;
+    const moreBtn = (state.allCats?.length > CAT_LIMIT)
+      ? `<button class="chip more" data-more="1">${state.showAllCats ? 'Show less' : 'Show all'} (${state.allCats.length})</button>`
+      : "";
 
-        // Move bar into sidebar once
-        if(!document.body.classList.contains("list-view")){
-          el("#cats-slot").appendChild(el("#cats"));
-          document.body.classList.add("list-view");
-        }
-
-        el("#cats").querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
-        b.classList.add("active");
-
-        render();
-        el(".content").scrollIntoView({behavior:"smooth"});
-      };
-    });
+    el("#cats").innerHTML = html + moreBtn;
   }
 
-  async function loadCats(){
-    const cats = await j(`${API}/api/categories`);
-    renderCats(cats);
-  }
+  // Delegation כדי שיעבוד אחרי כל רנדר
+  el("#cats").addEventListener("click", (e)=>{
+    const b = e.target.closest(".chip");
+    if(!b) return;
 
+    // Show all / less
+    if(b.dataset.more){
+      state.showAllCats = !state.showAllCats;
+      renderCats();
+      return;
+    }
+
+    // בחירת קטגוריה
+    state.category = b.dataset.val || null;
+    state.offset = 0;
+
+    // העברת הסרגל לשמאל פעם אחת
+    if(!document.body.classList.contains("list-view")){
+      el("#cats-slot").appendChild(el("#cats"));
+      document.body.classList.add("list-view");
+    }
+
+    el("#cats").querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+
+    render();
+    el(".content").scrollIntoView({behavior:"smooth"});
+  });
+
+  // ---- Items ----
   async function loadItems(){
     const p = new URLSearchParams();
     if(state.q)         p.set('q', state.q);
@@ -169,6 +194,7 @@
     }
   }
 
+  // ---- Controls ----
   document.addEventListener("input", e=>{
     if(e.target.id==="search"){
       state.q = e.target.value.trim();
@@ -179,6 +205,7 @@
   el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
   el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
 
+  // ---- Modal ----
   function openModal(it){
     const m = el("#item-modal");
     el("#m-img").src = it.Image || "";
