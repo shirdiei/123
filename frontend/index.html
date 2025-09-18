@@ -3,15 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Catalog</title>
+  <title>CJG – Catalog (Wide)</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Mobile override: categories first -->
+  <style>
+    @media (max-width:1000px){
+      .wrap{grid-template-columns:1fr}
+      .side{order:-1; position:static}
+    }
+  </style>
 </head>
 <body>
 
 <!-- Top navigation -->
 <header class="topnav">
   <div class="brand">CJG CUMONIDAD JUDIA</div>
-   </nav>
   <div class="actions">
     <button class="icon" aria-label="Account">🧑</button>
     <button class="icon" aria-label="Search">🔍</button>
@@ -19,14 +25,15 @@
   </div>
 </header>
 
-<!-- Hero (uses frontend/Picture1.png) -->
+<!-- Hero -->
 <section class="hero">
   <div class="hero-inner">
-    <div class="hero-cta">
-    </div>
+    <h1>Welcome</h1>
+    <h2>Browse and discover</h2>
   </div>
 </section>
 
+<!-- Wide layout: sidebar + content -->
 <main class="wrap">
   <aside class="side">
     <h2>Categories</h2>
@@ -68,8 +75,8 @@
     el("#cats").innerHTML = list.map(c => `
       <button class="chip ${state.category=== (c._all? null : c.category) ? "active":""}"
               data-val="${c._all ? "" : c.category}">
-        <span class="dot" style="--h:${Math.abs(c.category?.length*23)%360}"></span>
-        ${c.category} <span class="cnt">${c.count}</span>
+        <span class="dot" style="--h:${Math.abs((c.category||'').length*23)%360}"></span>
+        ${c.category} <span class="cnt">${c.count ?? ""}</span>
       </button>
     `).join("");
     el("#cats").querySelectorAll(".chip").forEach(b=>{
@@ -132,15 +139,6 @@
   });
   el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
   el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
-
-  document.addEventListener("click", (e)=>{
-    const b = e.target.closest(".hero .pill");
-    if(!b) return;
-    state.category = b.dataset.cat || null;
-    state.offset = 0;
-    render();
-    document.querySelector(".content").scrollIntoView({behavior:"smooth"});
-  });
 
   (async function init(){ await loadCats(); await render(); })();
 </script>
