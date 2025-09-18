@@ -10,21 +10,18 @@
 
 <header class="topnav">
   <div class="brand">CJG CUMONIDAD JUDIA</div>
-  <div class="actions">
-    <button class="icon" aria-label="Account">🧑</button>
-    <button class="icon" aria-label="Search">🔍</button>
-    <button class="icon" aria-label="Cart">🛍️</button>
+
   </div>
 </header>
 
-<!-- Hero: טקסט בלבד. התמונה היא רקע של כל האתר -->
+<!-- Hero – רק טקסט, כי התמונה מוגדרת כרקע של body -->
 <section class="hero">
   <div class="hero-inner">
     <h2 class="hero-sub">Choose a category</h2>
   </div>
 </section>
 
-<!-- Categories bar BELOW the hero. אותו אלמנט יעבור שמאלה אחרי לחיצה -->
+<!-- Categories – מוצגות פעם אחת בלבד -->
 <section class="cats-bar">
   <h2>Categories</h2>
   <div id="cats" class="cats"></div>
@@ -81,6 +78,7 @@
     return r.json();
   }
 
+  // Render categories once, move them left after click
   function renderCats(cats){
     const html = cats.map(c => `
       <button class="chip" data-val="${c.category}">
@@ -95,8 +93,9 @@
         state.category = b.dataset.val || null;
         state.offset = 0;
 
+        // Move bar into sidebar once
         if(!document.body.classList.contains("list-view")){
-          el("#cats-slot").appendChild(el("#cats")); // MOVE once
+          el("#cats-slot").appendChild(el("#cats"));
           document.body.classList.add("list-view");
         }
 
