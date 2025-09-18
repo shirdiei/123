@@ -6,7 +6,7 @@
   <title>CJG – Catalog</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body >
+<body>
 
 <header class="topnav">
   <div class="brand">CJG CUMONIDAD JUDIA</div>
@@ -17,10 +17,10 @@
   </div>
 </header>
 
-<!-- Hero: only your image, no background overlay -->
+<!-- Hero: image only -->
 <section class="hero">
   <div class="hero-inner">
-  <img class="hero-img" src="./Picture1.png?v=2" alt="Hero">
+    <img class="hero-img" src="./Picture1.png?v=4" alt="Hero">
     <h2 class="hero-sub">Choose a category</h2>
   </div>
 </section>
@@ -31,7 +31,7 @@
   <div id="cats" class="cats"></div>
 </section>
 
-<!-- List view container: when a category is selected, body gets .list-view -->
+<!-- List view container: after a click, body gets .list-view -->
 <main class="list">
   <aside class="side">
     <h3>Categories</h3>
@@ -83,7 +83,6 @@
     return r.json();
   }
 
-  // render cats into both top bar and sidebar
   function renderCats(cats){
     const html = cats.map(c => `
       <button class="chip" data-val="${c.category}">
@@ -94,13 +93,12 @@
     el("#cats").innerHTML = html;
     el("#cats-side").innerHTML = html;
 
-    // attach handlers in both places
     [el("#cats"), el("#cats-side")].forEach(root=>{
       root.querySelectorAll(".chip").forEach(b=>{
         b.onclick = ()=>{
           state.category = b.dataset.val || null;
           state.offset = 0;
-          document.body.classList.add("list-view"); // move cats left
+          document.body.classList.add("list-view");    // move cats left
           root.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
           b.classList.add("active");
           render();
