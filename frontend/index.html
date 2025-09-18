@@ -1,151 +1,199 @@
-:root{
-  --bg:#f7fafc; --panel:#ffffff; --card:#ffffff; --line:#e6ecf2;
-  --text:#1b2430; --muted:#5a6b7b; --chip:#f0f4f8;
-}
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CJG – Catalog</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
 
-/* Vintera (TTF/OTF as in your repo root) */
-@font-face{
-  font-family:"Vintera";
-  src:url("./Vintera-Regular.ttf") format("truetype"),
-      url("./Vintera-Regular.otf") format("opentype");
-  font-weight:400; font-style:normal; font-display:swap;
-}
-@font-face{
-  font-family:"Vintera";
-  src:url("./Vintera-Italic.ttf") format("truetype"),
-      url("./Vintera-Italic.otf") format("opentype");
-  font-weight:400; font-style:italic; font-display:swap;
-}
+<header class="topnav">
+  <div class="brand">CJG CUMONIDAD JUDIA</div>
+  <div class="actions">
+    <button class="icon" aria-label="Account">🧑</button>
+    <button class="icon" aria-label="Search">🔍</button>
+    <button class="icon" aria-label="Cart">🛍️</button>
+  </div>
+</header>
 
-/* Reset */
-*{box-sizing:border-box}
-html,body{height:100%}
-html{direction:ltr}
-body{
-  margin:0;
-  color:var(--text);
-  font-family:"Vintera", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+<!-- Hero: טקסט בלבד. התמונה היא רקע של כל האתר -->
+<section class="hero">
+  <div class="hero-inner">
+    <h2 class="hero-sub">Choose a category</h2>
+  </div>
+</section>
 
-  /* site-wide background image */
-  background: url("./Picture1.png?v=5") center/cover fixed no-repeat, var(--bg);
-}
+<!-- Categories bar BELOW the hero. אותו אלמנט יעבור שמאלה אחרי לחיצה -->
+<section class="cats-bar">
+  <h2>Categories</h2>
+  <div id="cats" class="cats"></div>
+</section>
 
-a{color:var(--text); text-decoration:none}
-a:hover{text-decoration:underline}
+<main class="list">
+  <aside class="side">
+    <h3>Categories</h3>
+    <div id="cats-slot"></div>
+  </aside>
 
-/* Top nav */
-.topnav{
-  position:sticky; top:0; z-index:50;
-  display:grid; grid-template-columns:1fr 120px; align-items:center;
-  gap:16px; padding:14px 20px;
-  background:var(--panel); border-bottom:1px solid var(--line);
-  backdrop-filter:saturate(1.2) blur(4px);
-}
-.brand{font-weight:700; letter-spacing:.6px}
-.actions{display:flex; gap:8px; justify-content:flex-end}
-.icon{all:unset; cursor:pointer; padding:6px 10px; border-radius:10px}
-.icon:hover{background:var(--chip)}
+  <section class="content">
+    <div class="controls">
+      <input id="search" placeholder="Search by name / brand / location" />
+      <span id="count"></span>
+      <div class="pager">
+        <button id="prev">‹ Prev</button>
+        <button id="next">Next ›</button>
+      </div>
+    </div>
+    <div id="grid" class="grid"></div>
+  </section>
+</main>
 
-/* Hero – only text over page background */
-.hero{margin:16px 16px 8px}
-.hero-inner{
-  display:flex; align-items:center; justify-content:center;
-  height:34vh; min-height:220px; text-align:center;
-}
-.hero-sub{
-  margin:0; font-size:28px; font-weight:700; letter-spacing:1px;
-  color:#fff; text-shadow:0 3px 14px rgba(0,0,0,.45)
-}
+<footer class="foot">Live data from API</footer>
 
-/* Categories bar (under hero) */
-.cats-bar{
-  background:var(--panel); border:1px solid var(--line);
-  border-radius:16px; padding:14px; margin:0 16px 12px
-}
-.cats-bar h2{margin:0 0 12px; font-size:16px; color:var(--muted)}
-.cats{display:flex; flex-wrap:wrap; gap:10px}
-.chip{
-  all:unset; background:var(--chip); color:var(--text); border:1px solid var(--line);
-  padding:10px 12px; border-radius:999px; cursor:pointer; font-size:13px;
-  display:flex; align-items:center; gap:8px;
-  transition:transform .08s ease, box-shadow .12s ease, border-color .12s ease;
-}
-.chip .dot{width:10px; height:10px; border-radius:50%;
-  background:hsl(var(--h,210) 70% 55%); box-shadow:0 0 0 3px hsl(var(--h,210) 70% 92%)}
-.chip .cnt{opacity:.6}
-.chip:hover{transform:translateY(-1px); box-shadow:0 6px 14px rgba(0,0,0,.08)}
-.chip.active{border-color:#111; box-shadow:0 0 0 3px rgba(0,0,0,.08)}
+<!-- Modal -->
+<dialog id="item-modal" class="modal">
+  <form method="dialog" class="modal-card">
+    <button class="modal-close" aria-label="Close">✕</button>
+    <div class="modal-body">
+      <img id="m-img" alt="" />
+      <div class="modal-info">
+        <h3 id="m-name"></h3>
+        <p><strong>Category:</strong> <span id="m-cat"></span></p>
+        <p><strong>Brand:</strong> <span id="m-brand"></span></p>
+        <p><strong>Location:</strong> <span id="m-where"></span></p>
+        <p id="m-desc"></p>
+      </div>
+    </div>
+  </form>
+</dialog>
 
-/* Layout: before click only content area is visible; sidebar hidden */
-.list{display:grid; grid-template-columns:1fr; gap:18px; padding:0 16px 16px}
-.side{display:none}
-@media (max-width:1000px){ .list{grid-template-columns:1fr} }
+<script>
+  const API = "";
+  let state = { q:"", category:null, offset:0, limit:24, itemsCache:[] };
 
-/* After a category click: move categories left, hide the top bar */
-body.list-view .cats-bar{display:none}
-body.list-view .list{grid-template-columns:280px 1fr}
-body.list-view .side{
-  display:block; position:sticky; top:16px; height:max-content;
-  background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px
-}
-.side h3{margin:0 0 12px; font-size:16px; color:var(--muted)}
+  const el  = s => document.querySelector(s);
+  const fmt = s => s || "—";
 
-/* Content */
-.content{min-width:0; background:var(--panel); border:1px solid var(--line);
-  border-radius:16px; padding:14px}
-.controls{display:flex; gap:12px; align-items:center; margin:0 0 12px}
-#search{flex:1; max-width:520px; background:#fff; border:1px solid var(--line);
-  border-radius:10px; padding:10px 12px; color:var(--text);
-  box-shadow:0 2px 8px rgba(0,0,0,.04) inset}
-.pager button{all:unset; background:var(--chip); border:1px solid var(--line);
-  padding:9px 12px; border-radius:10px; cursor:pointer}
-.pager button:disabled{opacity:.45; cursor:not-allowed}
+  async function j(u){
+    const r = await fetch(u);
+    if(!r.ok) throw new Error(r.status + " " + r.statusText);
+    return r.json();
+  }
 
-/* Grid */
-.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:16px}
+  function renderCats(cats){
+    const html = cats.map(c => `
+      <button class="chip" data-val="${c.category}">
+        <span class="dot" style="--h:${Math.abs((c.category||'').length*23)%360}"></span>
+        ${c.category} <span class="cnt">${c.count ?? ""}</span>
+      </button>
+    `).join("");
+    el("#cats").innerHTML = html;
 
-/* Cards */
-.card{
-  background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden;
-  transition:transform .10s ease, box-shadow .12s ease; cursor:pointer
-}
-.card:hover{transform:translateY(-3px); box-shadow:0 10px 22px rgba(0,0,0,.10)}
-.thumb-wrap{background:#f6f8fb; border-bottom:1px solid var(--line)}
-.thumb{display:block; width:100%; height:220px; object-fit:cover}
-.ph{display:flex; align-items:center; justify-content:center; color:var(--muted); height:220px}
-.body{padding:12px}
-.name{margin:0 0 6px; font-size:15px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.meta{display:flex; flex-direction:column; gap:3px; color:var(--muted); font-size:12px}
+    el("#cats").querySelectorAll(".chip").forEach(b=>{
+      b.onclick = ()=>{
+        state.category = b.dataset.val || null;
+        state.offset = 0;
 
-/* States */
-.loading,.empty,.error{padding:30px; text-align:center; color:var(--muted)}
+        if(!document.body.classList.contains("list-view")){
+          el("#cats-slot").appendChild(el("#cats")); // MOVE once
+          document.body.classList.add("list-view");
+        }
 
-/* Footer */
-.foot{padding:12px 16px; color:var(--muted); border-top:1px solid var(--line);
-  background:transparent; text-align:center}
+        el("#cats").querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+        b.classList.add("active");
 
-/* Modal – rounded, no border, Vintera */
-.modal{
-  padding:0; border:none; outline:none;
-  border-radius:32px;
-  max-width:900px; width:96%;
-  background:#fff;
-  box-shadow:0 20px 50px rgba(0,0,0,.35);
-  font-family:"Vintera", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-}
-.modal::backdrop{ background:rgba(0,0,0,.45) }
-.modal-card{ padding:0; margin:0; border:0; background:transparent }
-.modal-close{
-  position:absolute; top:10px; right:10px;
-  border:0; outline:0; background:#fff; border-radius:999px;
-  width:36px; height:36px; cursor:pointer;
-  box-shadow:0 4px 16px rgba(0,0,0,.2)
-}
-.modal-body{ display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:18px }
-.modal-body img{ width:100%; height:100%; object-fit:cover; border-radius:18px }
-.modal-info h3{ margin:4px 0 8px; font-size:22px; font-weight:700 }
-.modal-info p{ margin:4px 0; font-size:15px }
-@media (max-width:700px){ .modal-body{ grid-template-columns:1fr } }
+        render();
+        el(".content").scrollIntoView({behavior:"smooth"});
+      };
+    });
+  }
 
-/* Motion */
-@media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
+  async function loadCats(){
+    const cats = await j(`${API}/api/categories`);
+    renderCats(cats);
+  }
+
+  async function loadItems(){
+    const p = new URLSearchParams();
+    if(state.q)         p.set('q', state.q);
+    if(state.category)  p.set('category', state.category);
+    p.set('limit',  state.limit);
+    p.set('offset', state.offset);
+    const data = await j(`${API}/api/items?${p}`);
+    state.itemsCache = data.items || [];
+    return data;
+  }
+
+  function imgTag(src, alt){
+    if(!src) return `<div class="thumb ph">No image</div>`;
+    return `<img class="thumb" src="${src}" alt="${alt||""}" loading="lazy"
+      onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb ph',innerText:'No image'}))">`;
+  }
+
+  async function render(){
+    if(!state.category){
+      el("#grid").innerHTML = '<div class="empty">Select a category to view</div>';
+      el("#count").textContent = "";
+      return;
+    }
+    el("#grid").innerHTML = '<div class="loading">Loading…</div>';
+    try{
+      const data = await loadItems();
+      el("#count").textContent = `${data.total} items`;
+      const html = data.items.map((it, idx) => `
+        <article class="card" data-idx="${idx}">
+          <div class="thumb-wrap">${imgTag(it.Image, it.Name)}</div>
+          <div class="body">
+            <h3 class="name" title="${it.Name||''}">${fmt(it.Name)}</h3>
+            <div class="meta">
+              <span>Category: ${fmt(it.Category)}</span>
+              <span>Brand: ${fmt(it.Marca)}</span>
+              <span>Location: ${fmt(it.where)}</span>
+            </div>
+          </div>
+        </article>
+      `).join("");
+      el("#grid").innerHTML = html || '<div class="empty">No results</div>';
+      el("#prev").disabled = state.offset<=0;
+      el("#next").disabled = state.offset+state.limit>=data.total;
+
+      el("#grid").querySelectorAll(".card").forEach(card=>{
+        card.onclick = ()=>{
+          const idx = Number(card.dataset.idx);
+          const it = state.itemsCache[idx] || {};
+          openModal(it);
+        };
+      });
+    }catch(e){
+      el("#grid").innerHTML = `<div class="error">Load error (${e.message})</div>`;
+    }
+  }
+
+  document.addEventListener("input", e=>{
+    if(e.target.id==="search"){
+      state.q = e.target.value.trim();
+      state.offset = 0;
+      render();
+    }
+  });
+  el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
+  el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
+
+  function openModal(it){
+    const m = el("#item-modal");
+    el("#m-img").src = it.Image || "";
+    el("#m-img").alt = it.Name || "";
+    el("#m-name").textContent  = fmt(it.Name);
+    el("#m-cat").textContent   = fmt(it.Category);
+    el("#m-brand").textContent = fmt(it.Marca);
+    el("#m-where").textContent = fmt(it.where);
+    el("#m-desc").textContent  = fmt(it.Description || it.desc || "");
+    if(typeof m.showModal === "function"){ m.showModal(); } else { m.setAttribute("open",""); }
+  }
+  el(".modal-close").onclick = ()=> el("#item-modal").close?.();
+
+  (async function init(){ await loadCats(); await render(); })();
+</script>
+</body>
+</html>
