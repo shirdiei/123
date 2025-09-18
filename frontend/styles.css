@@ -27,7 +27,7 @@ body{
   font-family:"Vintera", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
   /* site-wide background image */
-  background: url("./Picture1.png?v=4") center/cover fixed no-repeat, var(--bg);
+  background: url("./Picture1.png") center/cover fixed no-repeat, var(--bg);
 }
 
 a{color:var(--text); text-decoration:none}
