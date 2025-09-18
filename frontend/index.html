@@ -10,22 +10,31 @@
 
 <header class="topnav">
   <div class="brand">CJG CUMONIDAD JUDIA</div>
+  <div class="actions">
+    <button class="icon" aria-label="Account">🧑</button>
+    <button class="icon" aria-label="Search">🔍</button>
+    <button class="icon" aria-label="Cart">🛍️</button>
   </div>
 </header>
 
-<!-- Hero: image only -->
+<!-- Hero: no image tag, background is set on <body> -->
 <section class="hero">
   <div class="hero-inner">
-    <img class="hero-img" src="./Picture1.png?v=4" alt="Hero">
     <h2 class="hero-sub">Choose a category</h2>
   </div>
 </section>
 
-<!-- Categories bar BELOW the image -->
+<!-- Categories bar BELOW the hero. This single node will MOVE to the sidebar on click -->
 <section class="cats-bar">
   <h2>Categories</h2>
   <div id="cats" class="cats"></div>
 </section>
+
+<main class="list">
+  <aside class="side">
+    <h3>Categories</h3>
+    <div id="cats-slot"></div><!-- target to move #cats into after click -->
+  </aside>
 
   <section class="content">
     <div class="controls">
@@ -72,6 +81,7 @@
     return r.json();
   }
 
+  // Render categories once
   function renderCats(cats){
     const html = cats.map(c => `
       <button class="chip" data-val="${c.category}">
@@ -80,20 +90,26 @@
       </button>
     `).join("");
     el("#cats").innerHTML = html;
-    el("#cats-side").innerHTML = html;
 
-    [el("#cats"), el("#cats-side")].forEach(root=>{
-      root.querySelectorAll(".chip").forEach(b=>{
-        b.onclick = ()=>{
-          state.category = b.dataset.val || null;
-          state.offset = 0;
-          document.body.classList.add("list-view");    // move cats left
-          root.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
-          b.classList.add("active");
-          render();
-          el(".content").scrollIntoView({behavior:"smooth"});
-        };
-      });
+    // click handler
+    el("#cats").querySelectorAll(".chip").forEach(b=>{
+      b.onclick = ()=>{
+        state.category = b.dataset.val || null;
+        state.offset = 0;
+
+        // move categories bar into sidebar once
+        if(!document.body.classList.contains("list-view")){
+          el("#cats-slot").appendChild(el("#cats"));  // MOVE the node
+          document.body.classList.add("list-view");
+        }
+
+        // active state
+        el("#cats").querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+        b.classList.add("active");
+
+        render();
+        el(".content").scrollIntoView({behavior:"smooth"});
+      };
     });
   }
 
