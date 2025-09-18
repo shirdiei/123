@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="he" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CJG – Home</title>
+  <title>CJG – Catalog</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -17,19 +17,25 @@
   </div>
 </header>
 
-<!-- דף בית: תמונה עליונה + קטגוריות -->
+<!-- Hero: only your image, no background overlay -->
 <section class="hero">
   <div class="hero-inner">
-    <!-- שימי כאן את שם הקובץ שהעלית. לדוגמה Picture1.png -->
-    <img class="hero-img" src="Picture1.png" alt="Hero" />
-    <h2>בחרי קטגוריה</h2>
+    <img class="hero-img" src="./Picture1.png" alt="Hero" />
+    <h2 class="hero-sub">Choose a category</h2>
   </div>
 </section>
 
-<main class="wrap">
+<!-- Categories bar BELOW the image -->
+<section class="cats-bar">
+  <h2>Categories</h2>
+  <div id="cats" class="cats"></div>
+</section>
+
+<!-- List view container: when a category is selected, body gets .list-view -->
+<main class="list">
   <aside class="side">
-    <h2>Categories</h2>
-    <div id="cats" class="cats"></div>
+    <h3>Categories</h3>
+    <div id="cats-side" class="cats"></div>
   </aside>
 
   <section class="content">
@@ -47,7 +53,7 @@
 
 <footer class="foot">Live data from API</footer>
 
-<!-- מודאל לפרטי פריט -->
+<!-- Modal for item details -->
 <dialog id="item-modal" class="modal">
   <form method="dialog" class="modal-card">
     <button class="modal-close" aria-label="Close">✕</button>
@@ -65,7 +71,7 @@
 </dialog>
 
 <script>
-  const API = ""; // same-origin
+  const API = "";
   let state = { q:"", category:null, offset:0, limit:24, itemsCache:[] };
 
   const el  = s => document.querySelector(s);
@@ -77,31 +83,38 @@
     return r.json();
   }
 
-  // קטגוריות בדף הבית
-  async function loadCats(){
-    const cats = await j(`${API}/api/categories`);
-    el("#cats").innerHTML = cats.map(c => `
+  // render cats into both top bar and sidebar
+  function renderCats(cats){
+    const html = cats.map(c => `
       <button class="chip" data-val="${c.category}">
         <span class="dot" style="--h:${Math.abs((c.category||'').length*23)%360}"></span>
-        ${c.category} <span class="cnt">${c.count??""}</span>
+        ${c.category} <span class="cnt">${c.count ?? ""}</span>
       </button>
     `).join("");
+    el("#cats").innerHTML = html;
+    el("#cats-side").innerHTML = html;
 
-    el("#cats").querySelectorAll(".chip").forEach(b=>{
-      b.onclick = ()=>{
-        state.category = b.dataset.val || null;
-        state.offset = 0;
-        // סימון בחירה
-        el("#cats").querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
-        b.classList.add("active");
-        render();
-        // גלילה אל אזור התוכן
-        document.querySelector(".content").scrollIntoView({behavior:"smooth"});
-      };
+    // attach handlers in both places
+    [el("#cats"), el("#cats-side")].forEach(root=>{
+      root.querySelectorAll(".chip").forEach(b=>{
+        b.onclick = ()=>{
+          state.category = b.dataset.val || null;
+          state.offset = 0;
+          document.body.classList.add("list-view"); // move cats left
+          root.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+          b.classList.add("active");
+          render();
+          el(".content").scrollIntoView({behavior:"smooth"});
+        };
+      });
     });
   }
 
-  // טעינת פריטים
+  async function loadCats(){
+    const cats = await j(`${API}/api/categories`);
+    renderCats(cats);
+  }
+
   async function loadItems(){
     const p = new URLSearchParams();
     if(state.q)         p.set('q', state.q);
@@ -109,7 +122,6 @@
     p.set('limit',  state.limit);
     p.set('offset', state.offset);
     const data = await j(`${API}/api/items?${p}`);
-    // שמור מטמון להצגת פרטים במודאל
     state.itemsCache = data.items || [];
     return data;
   }
@@ -121,9 +133,12 @@
   }
 
   async function render(){
-    el("#grid").innerHTML = state.category ? '<div class="loading">Loading…</div>' : '<div class="empty">בחרי קטגוריה להצגה</div>';
-    if(!state.category) { el("#count").textContent = ""; return; }
-
+    if(!state.category){
+      el("#grid").innerHTML = '<div class="empty">Select a category to view</div>';
+      el("#count").textContent = "";
+      return;
+    }
+    el("#grid").innerHTML = '<div class="loading">Loading…</div>';
     try{
       const data = await loadItems();
       el("#count").textContent = `${data.total} items`;
@@ -144,7 +159,6 @@
       el("#prev").disabled = state.offset<=0;
       el("#next").disabled = state.offset+state.limit>=data.total;
 
-      // פתיחת מודאל בלחיצה על תמונה/כרטיס
       el("#grid").querySelectorAll(".card").forEach(card=>{
         card.onclick = ()=>{
           const idx = Number(card.dataset.idx);
@@ -157,7 +171,6 @@
     }
   }
 
-  // חיפוש ועימוד
   document.addEventListener("input", e=>{
     if(e.target.id==="search"){
       state.q = e.target.value.trim();
@@ -168,7 +181,6 @@
   el("#prev").onclick = ()=>{ state.offset = Math.max(0, state.offset - state.limit); render(); };
   el("#next").onclick = ()=>{ state.offset += state.limit; render(); };
 
-  // מודאל
   function openModal(it){
     const m = el("#item-modal");
     el("#m-img").src = it.Image || "";
@@ -182,7 +194,6 @@
   }
   el(".modal-close").onclick = ()=> el("#item-modal").close?.();
 
-  // אתחול: טען קטגוריות, הצג מסך בית
   (async function init(){ await loadCats(); await render(); })();
 </script>
 </body>
